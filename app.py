@@ -317,10 +317,20 @@ def like_or_unlike_message():
     return redirect("/")
 
 
-@app.route("/users/<int:user_id>/likes", methods=["GET"])
+@app.route("/users/<int:user_id>/likes", methods=["GET", "POST"])
 def show_liked_messages(user_id):
     """Show all of the liked messages"""
+
     user = g.user
+
+    if request.method == "POST":
+        message_id = request.form["message-id"]
+        like = Like.query.filter(
+            and_(Like.user_id == g.user.id, Like.message_id == message_id)
+        ).all()
+        db.session.delete(like[0])
+        db.session.commit()
+
     return render_template("/users/likes.html", user=user)
 
 
@@ -345,8 +355,9 @@ def homepage():
             .limit(100)
             .all()
         )
+        like_ids = [like.message_id for like in g.user.likes]
 
-        return render_template("home.html", messages=messages)
+        return render_template("home.html", messages=messages, like_ids=like_ids)
 
     else:
         return render_template("home-anon.html")

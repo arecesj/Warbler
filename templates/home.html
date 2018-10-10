@@ -52,7 +52,11 @@
               <p>{{ msg.text }}</p> 
             </div>
           </li>
+          {% if msg.id in like_ids %}
+          <form method='POST'><button value="{{msg.id}}" name="message-id" class="favorite-button"><i class="fas fa-star pl-1"></i></button></form>
+          {% else %}
           <form method='POST'><button value="{{msg.id}}" name="message-id" class="favorite-button"><i class="far fa-star pl-1"></i></button></form>
+          {% endif %}
         {% endfor %}
       </ul>
     </div>
