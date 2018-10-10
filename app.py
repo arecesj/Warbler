@@ -295,8 +295,8 @@ def messages_destroy(message_id):
 
 
 @app.route("/", methods=["POST"])
-def like_message():
-
+def like_or_unlike_message():
+    """Adds or deletes a like from the database """
     message_id = request.form["message-id"]
     like = Like.query.filter(
         and_(Like.user_id == g.user.id, Like.message_id == message_id)
@@ -315,6 +315,13 @@ def like_message():
         db.session.commit()
 
     return redirect("/")
+
+
+@app.route("/users/<int:user_id>/likes", methods=["GET"])
+def show_liked_messages(user_id):
+    """Show all of the liked messages"""
+    user = g.user
+    return render_template("/users/likes.html", user=user)
 
 
 ##############################################################################
