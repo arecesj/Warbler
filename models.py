@@ -12,75 +12,50 @@ db = SQLAlchemy()
 class FollowersFollowee(db.Model):
     """Connection of a follower <-> followee."""
 
-    __tablename__ = 'follows'
+    __tablename__ = "follows"
 
     followee_id = db.Column(
-        db.Integer,
-        db.ForeignKey('users.id', ondelete="cascade"),
-        primary_key=True,
+        db.Integer, db.ForeignKey("users.id", ondelete="cascade"), primary_key=True
     )
 
     follower_id = db.Column(
-        db.Integer,
-        db.ForeignKey('users.id', ondelete="cascade"),
-        primary_key=True,
+        db.Integer, db.ForeignKey("users.id", ondelete="cascade"), primary_key=True
     )
 
 
 class User(db.Model):
     """User in the system."""
 
-    __tablename__ = 'users'
+    __tablename__ = "users"
 
-    id = db.Column(
-        db.Integer,
-        primary_key=True,
-    )
+    id = db.Column(db.Integer, primary_key=True)
 
-    email = db.Column(
-        db.Text,
-        nullable=False,
-        unique=True,
-    )
+    email = db.Column(db.Text, nullable=False, unique=True)
 
-    username = db.Column(
-        db.Text,
-        nullable=False,
-        unique=True,
-    )
+    username = db.Column(db.Text, nullable=False, unique=True)
 
-    image_url = db.Column(
-        db.Text,
-        default="/static/images/default-pic.png",
-    )
+    image_url = db.Column(db.Text, default="/static/images/default-pic.png")
 
-    header_image_url = db.Column(
-        db.Text,
-        default="/static/images/warbler-hero.jpg"
-    )
+    header_image_url = db.Column(db.Text, default="/static/images/warbler-hero.jpg")
 
-    bio = db.Column(
-        db.Text,
-    )
+    bio = db.Column(db.Text)
 
-    location = db.Column(
-        db.Text,
-    )
+    location = db.Column(db.Text)
 
-    password = db.Column(
-        db.Text,
-        nullable=False,
-    )
+    password = db.Column(db.Text, nullable=False)
 
-    messages = db.relationship('Message', backref='user', lazy='dynamic')
+    messages = db.relationship("Message", backref="user", lazy="dynamic")
 
     followers = db.relationship(
         "User",
         secondary="follows",
         primaryjoin=(FollowersFollowee.follower_id == id),
         secondaryjoin=(FollowersFollowee.followee_id == id),
-        backref=db.backref('following', lazy='dynamic'),
-        lazy='dynamic')
+        backref=db.backref("following", lazy="dynamic"),
+        lazy="dynamic",
+    )
+
+    likes = db.relationship("Like", backref="user", lazy="dynamic")
 
     def __repr__(self):
         return f"<User #{self.id}: {self.username}, {self.email}>"
@@ -102,13 +77,10 @@ class User(db.Model):
         Hashes password and adds user to system.
         """
 
-        hashed_pwd = bcrypt.generate_password_hash(password).decode('UTF-8')
+        hashed_pwd = bcrypt.generate_password_hash(password).decode("UTF-8")
 
         user = User(
-            username=username,
-            email=email,
-            password=hashed_pwd,
-            image_url=image_url,
+            username=username, email=email, password=hashed_pwd, image_url=image_url
         )
 
         db.session.add(user)
@@ -138,28 +110,32 @@ class User(db.Model):
 class Message(db.Model):
     """An individual message ("warble")."""
 
-    __tablename__ = 'messages'
+    __tablename__ = "messages"
 
-    id = db.Column(
-        db.Integer,
-        primary_key=True,
-    )
+    id = db.Column(db.Integer, primary_key=True)
 
-    text = db.Column(
-        db.String(140),
-        nullable=False,
-    )
+    text = db.Column(db.String(140), nullable=False)
 
-    timestamp = db.Column(
-        db.DateTime,
-        nullable=False,
-        default=datetime.utcnow(),
-    )
+    timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow())
 
     user_id = db.Column(
-        db.Integer,
-        db.ForeignKey('users.id', ondelete='CASCADE'),
-        nullable=False,
+        db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+
+    likes = db.relationship("Like", backref="message", lazy="dynamic")
+
+
+class Like(db.Model):
+    """Connection btw Message and User who liked Message"""
+
+    __tablename__ = "likes"
+
+    user_id = db.Column(
+        db.Integer, db.ForeignKey("users.id", ondelete="cascade"), primary_key=True
+    )
+
+    message_id = db.Column(
+        db.Integer, db.ForeignKey("messages.id", ondelete="cascade"), primary_key=True
     )
 
 

@@ -3,9 +3,10 @@ import os
 from flask import Flask, render_template, request, flash, redirect, session, g
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
-
+from sqlalchemy.sql.expression import Tuple
+from sqlalchemy import and_
 from forms import UserAddForm, LoginForm, MessageForm, EditUserForm
-from models import db, connect_db, User, Message
+from models import db, connect_db, User, Message, Like
 
 CURR_USER_KEY = "curr_user"
 
@@ -24,6 +25,7 @@ app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "it's a secret")
 toolbar = DebugToolbarExtension(app)
 
 connect_db(app)
+db.create_all()
 
 
 ##############################################################################
@@ -206,8 +208,6 @@ def profile():
     """Update profile for current user."""
     form = EditUserForm(obj=g.user)
 
-    # TODO: Handle Password
-
     user = User.authenticate(username=g.user.username, password=form.data["password"])
 
     if form.validate_on_submit():
@@ -292,6 +292,29 @@ def messages_destroy(message_id):
     db.session.commit()
 
     return redirect(f"/users/{g.user.id}")
+
+
+@app.route("/", methods=["POST"])
+def like_message():
+
+    message_id = request.form["message-id"]
+    like = Like.query.filter(
+        and_(Like.user_id == g.user.id, Like.message_id == message_id)
+    ).all()
+    # likes = Message.query.get(message_id).likes.all()
+    # user_ids = [like.user.id for like in likes]
+
+    if like:
+        db.session.delete(like[0])
+        db.session.commit()
+
+    else:
+        new_like = Like(user_id=g.user.id, message_id=message_id)
+
+        db.session.add(new_like)
+        db.session.commit()
+
+    return redirect("/")
 
 
 ##############################################################################
