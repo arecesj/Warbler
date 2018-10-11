@@ -52,3 +52,69 @@ class UserModelTestCase(TestCase):
         # User should have no messages & no followers
         self.assertEqual(u.messages.count(), 0)
         self.assertEqual(u.followers.count(), 0)
+
+    def test_is_followed_by(self):
+        """Does is_followed_by work?"""
+
+        u = User(email="test@test.com", username="testuser", password="HASHED_PASSWORD")
+
+        u2 = User(
+            email="second@test.com", username="testuser2", password="HASHED_PASSWORD"
+        )
+
+        u3 = User(
+            email="third@test.com", username="testuser3", password="HASHED_PASSWORD"
+        )
+
+        db.session.add(u)
+        db.session.add(u2)
+        db.session.add(u3)
+        db.session.commit()
+
+        # u3 follows u
+        u3.following.append(u)
+
+        self.assertEqual(u.is_followed_by(u3), True)
+        self.assertEqual(u.is_followed_by(u2), False)
+
+    def test_is_following(self):
+        """Does is_following work?"""
+
+        u = User(email="test@test.com", username="testuser", password="HASHED_PASSWORD")
+
+        u2 = User(
+            email="second@test.com", username="testuser2", password="HASHED_PASSWORD"
+        )
+
+        u3 = User(
+            email="third@test.com", username="testuser3", password="HASHED_PASSWORD"
+        )
+
+        db.session.add(u)
+        db.session.add(u2)
+        db.session.add(u3)
+        db.session.commit()
+
+        # u3 follows u
+        u3.following.append(u)
+
+        self.assertEqual(u3.is_following(u), True)
+        self.assertEqual(u.is_following(u2), False)
+
+    def test_signup(self):
+        """Does signup add user to database with expected data?"""
+
+        u = User.signup(
+            username="SlytherinSilas",
+            password="HASHED_PASSWORD",
+            email="test@test.com",
+            image_url="http://google.com",
+        )
+
+        db.session.add(u)
+        db.session.commit()
+
+        uDB = User.query.first()
+
+        self.assertEqual(uDB.username, "SlytherinSilas")
+        self.assertEqual(uDB.messages.count(), 0)
