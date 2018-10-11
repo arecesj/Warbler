@@ -62,7 +62,7 @@ class MessageModelTestCase(TestCase):
 # methods for likes
 
     def test_like(self):
-        """Does like method add a like to db and return the like object?"""
+        """Does like method add a like to db and return the message object?"""
 
         u = User(email="test@test.com", username="testuser",
                  password="HASHED_PASSWORD")
@@ -94,6 +94,39 @@ class MessageModelTestCase(TestCase):
         self.assertEqual(result.id, msg_to_like.id)
         self.assertEqual(committed_liker_id, liker.id)
         self.assertEqual(committed_liked_msg_id, msg_to_like.id)
+
+    def test_unlike(self):
+        """Does unlike method delete a like from db and return the message object?"""
+
+        u = User(email="test@test.com", username="testuser",
+                 password="HASHED_PASSWORD")
+
+        u2 = User(
+            email="second@test.com", username="testuser2", password="HASHED_PASSWORD"
+        )
+
+        db.session.add(u)
+        db.session.add(u2)
+        db.session.commit()
+
+        msg = Message(text="My dad makes margaritas!")
+        u.messages.append(msg)
+        db.session.commit()
+
+        msg_to_like = Message.query.first()
+
+        # gets the second user that was created (u2)
+        liker = User.query.order_by(User.id.desc()).first()
+
+        liked_msg = msg_to_like.like(liker)
+
+        unliked_msg = liked_msg.unlike(liker)
+
+        db_likes = Like.query.first()
+
+        # does like method return the message that was liked
+        self.assertEqual(unliked_msg.id, msg_to_like.id)
+        self.assertEqual(db_likes, None)
 
     def test_is_liked_by(self):
         """Does is_liked_by method return correct boolean?"""
