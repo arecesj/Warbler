@@ -44,7 +44,8 @@ class UserModelTestCase(TestCase):
     def test_user_model(self):
         """Does basic model work?"""
 
-        u = User(email="test@test.com", username="testuser", password="HASHED_PASSWORD")
+        u = User(email="test@test.com", username="testuser",
+                 password="HASHED_PASSWORD")
 
         db.session.add(u)
         db.session.commit()
@@ -56,7 +57,8 @@ class UserModelTestCase(TestCase):
     def test_is_followed_by(self):
         """Does is_followed_by work?"""
 
-        u = User(email="test@test.com", username="testuser", password="HASHED_PASSWORD")
+        u = User(email="test@test.com", username="testuser",
+                 password="HASHED_PASSWORD")
 
         u2 = User(
             email="second@test.com", username="testuser2", password="HASHED_PASSWORD"
@@ -80,7 +82,8 @@ class UserModelTestCase(TestCase):
     def test_is_following(self):
         """Does is_following work?"""
 
-        u = User(email="test@test.com", username="testuser", password="HASHED_PASSWORD")
+        u = User(email="test@test.com", username="testuser",
+                 password="HASHED_PASSWORD")
 
         u2 = User(
             email="second@test.com", username="testuser2", password="HASHED_PASSWORD"
@@ -118,3 +121,23 @@ class UserModelTestCase(TestCase):
 
         self.assertEqual(uDB.username, "SlytherinSilas")
         self.assertEqual(uDB.messages.count(), 0)
+
+    def test_authenticate(self):
+        """Does authenticate return user when logged in with correct username and password?
+        Does auth return false for incorrect password?"""
+
+        u = User.signup(
+            username="SlytherinSilas",
+            password="HASHED_PASSWORD",
+            email="test@test.com",
+            image_url="http://google.com",
+        )
+
+        db.session.add(u)
+        db.session.commit()
+
+        user = User.authenticate("SlytherinSilas", "HASHED_PASSWORD")
+        baduser = User.authenticate("SlytherinSilas", "WRONG_PASSWORD")
+
+        self.assertEqual(user.email, "test@test.com")
+        self.assertEqual(baduser, False)
