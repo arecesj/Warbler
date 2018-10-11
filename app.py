@@ -206,12 +206,14 @@ def stop_following(follow_id):
 @app.route("/users/profile", methods=["GET", "POST"])
 def profile():
     """Update profile for current user."""
+
     form = EditUserForm(obj=g.user)
 
     user = User.authenticate(username=g.user.username, password=form.data["password"])
 
     if form.validate_on_submit():
         if g.user == user:
+            # if user:
             g.user.username = request.form["username"]
             g.user.email = request.form["email"]
             g.user.image_url = request.form["image_url"]
@@ -224,6 +226,24 @@ def profile():
         else:
             flash("Incorrect Password", "danger")
             return redirect("/")
+
+    # if g.user == user:
+    #     if not user:
+    #         flash("Incorrect Password", "danger")
+    #         return redirect("/")
+
+    # g.user.username = request.form["username"]
+    # g.user.email = request.form["email"]
+    # g.user.image_url = request.form["image_url"]
+    # g.user.header_image_url = request.form["header_image_url"]
+    # g.user.bio = request.form["bio"]
+    # g.user.location = request.form["location"]
+    # db.session.commit()
+    # return redirect(f"/users/{user.id}")
+
+    #     else:
+    #         flash("Incorrect Password", "danger")
+    #         return redirect("/")
 
     return render_template("/users/edit.html", user=user, form=form, user_id=g.user.id)
 
@@ -294,27 +314,42 @@ def messages_destroy(message_id):
     return redirect(f"/users/{g.user.id}")
 
 
-@app.route("/", methods=["POST"])
-def like_or_unlike_message():
-    """Adds or deletes a like from the database """
-    message_id = request.form["message-id"]
-    like = Like.query.filter(
-        and_(Like.user_id == g.user.id, Like.message_id == message_id)
-    ).all()
-    # likes = Message.query.get(message_id).likes.all()
-    # user_ids = [like.user.id for like in likes]
+#########################################
+# Likes
 
-    if like:
-        db.session.delete(like[0])
-        db.session.commit()
 
-    else:
-        new_like = Like(user_id=g.user.id, message_id=message_id)
+# @app.route("/likes/<int:message_id>", method=["POST"])
+# def like_or_unlike_a_message(message_id):
+#     return_to = request.form["return_to"]
+#     ....
+#     return redirect(return_to)
 
-        db.session.add(new_like)
-        db.session.commit()
 
-    return redirect("/")
+@app.route("/like/<int:message_id>", methods=["POST"])
+def like_message(message_id):
+    """adds a like to database and redirects back to previous page"""
+
+    print("in like function")
+    message = Message.query.get(message_id)
+
+    message.like(g.user)
+
+    return_to = request.form["return_to"]
+
+    return redirect(return_to)
+
+
+@app.route("/unlike/<int:message_id>", methods=["POST"])
+def unlike_message(message_id):
+    """Deletes a like from the database and redirects back to previous page"""
+
+    message = Message.query.get(message_id)
+
+    message.unlike(g.user)
+
+    return_to = request.form["return_to"]
+
+    return redirect(return_to)
 
 
 @app.route("/users/<int:user_id>/likes", methods=["GET", "POST"])
@@ -322,14 +357,6 @@ def show_liked_messages(user_id):
     """Show all of the liked messages"""
 
     user = g.user
-
-    if request.method == "POST":
-        message_id = request.form["message-id"]
-        like = Like.query.filter(
-            and_(Like.user_id == g.user.id, Like.message_id == message_id)
-        ).all()
-        db.session.delete(like[0])
-        db.session.commit()
 
     return render_template("/users/likes.html", user=user)
 

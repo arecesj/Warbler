@@ -42,7 +42,7 @@
       <ul class="list-group" id="messages">
         {% for msg in messages %}
           <li class="list-group-item">
-            <a href="/messages/{{ msg.id  }}" class="message-link">
+            <a href="/messages/{{ msg.id  }}/" class="message-link"></a>
             <a href="/users/{{ msg.user.id }}">
               <img src="{{ msg.user.image_url }}" alt="" class="timeline-image">
             </a>
@@ -50,13 +50,19 @@
               <a href="/users/{{ msg.user.id }}">@{{ msg.user.username }}</a>
               <span class="text-muted">{{ msg.timestamp.strftime('%d %B %Y') }}</span>
               <p>{{ msg.text }}</p> 
-            </div>
+            {% if msg.is_liked_by(g.user) %}
+            <form action="/unlike/{{msg.id}}" method='POST'>
+              <input type="hidden" name="return_to" value="/"> 
+              <button value="{{msg.id}}" name="message-id" class="favorite-button"><i class="fas fa-star pl-1"></i></button>
+            </form>
+            {% else %}
+            <form action="/like/{{msg.id}}" method='POST'>
+              <input type="hidden" name="return_to" value="/"> 
+              <button value="{{msg.id}}" name="message-id" class="favorite-button"><i class="far fa-star pl-1"></i></button>
+            </form>
+            {% endif %}  
+          </div>
           </li>
-          {% if msg.id in like_ids %}
-          <form method='POST'><button value="{{msg.id}}" name="message-id" class="favorite-button"><i class="fas fa-star pl-1"></i></button></form>
-          {% else %}
-          <form method='POST'><button value="{{msg.id}}" name="message-id" class="favorite-button"><i class="far fa-star pl-1"></i></button></form>
-          {% endif %}
         {% endfor %}
       </ul>
     </div>

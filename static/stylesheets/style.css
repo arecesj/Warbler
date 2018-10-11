@@ -24,6 +24,10 @@ body.error-404 {
   border: none;
   opacity: 0.8;
   z-index: 9999;
+  background-color: pink !important;
+  position: relative;
+  top: 5px;
+  right: 5px;
 }
 
 /* ======================= Nav */

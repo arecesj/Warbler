@@ -57,6 +57,13 @@ class User(db.Model):
 
     likes = db.relationship("Like", backref="user", lazy="dynamic")
 
+    liked_messages = db.relationship(
+        "Message",
+        secondary="likes",
+        backref=db.backref("liking_users", lazy="dynamic"),
+        lazy="dynamic",
+    )
+
     def __repr__(self):
         return f"<User #{self.id}: {self.username}, {self.email}>"
 
@@ -123,6 +130,34 @@ class Message(db.Model):
     )
 
     likes = db.relationship("Like", backref="message", lazy="dynamic")
+
+    # "Fat models, thin views"
+
+    def is_liked_by(self, user):
+        """Does this user like this message?"""
+
+        return bool(self.liking_users.filter_by(id=user.id).first())
+
+    def like(self, user):
+        """when a message is liked, adds like to database"""
+
+        new_like = Like(user_id=user.id, message_id=self.id)
+
+        db.session.add(new_like)
+        db.session.commit()
+
+        return self
+
+    def unlike(self, user):
+        """when a messae is unliked, delete like from database"""
+
+        like = Like.query.filter(
+            Like.message_id == self.id, Like.user_id == user.id
+        ).first()
+        db.session.delete(like)
+        db.session.commit()
+
+        return self
 
 
 class Like(db.Model):
