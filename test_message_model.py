@@ -58,6 +58,43 @@ class MessageModelTestCase(TestCase):
         self.assertEqual(u.messages.count(), 1)
         self.assertIn("My dad", u.messages.first().text)
 
+############################
+# methods for likes
+
+    def test_like(self):
+        """Does like method add a like to db and return the like object?"""
+
+        u = User(email="test@test.com", username="testuser",
+                 password="HASHED_PASSWORD")
+
+        u2 = User(
+            email="second@test.com", username="testuser2", password="HASHED_PASSWORD"
+        )
+
+        db.session.add(u)
+        db.session.add(u2)
+        db.session.commit()
+
+        msg = Message(text="My dad makes margaritas!")
+        u.messages.append(msg)
+        db.session.commit()
+
+        msg_to_like = Message.query.first()
+
+        # gets the second user that was created (u2)
+        liker = User.query.order_by(User.id.desc()).first()
+
+        result = msg_to_like.like(liker)
+
+        committed_liker_id = Like.query.first().user_id
+
+        committed_liked_msg_id = Like.query.first().message_id
+
+        # does like method return the message that was liked
+        self.assertEqual(result.id, msg_to_like.id)
+        self.assertEqual(committed_liker_id, liker.id)
+        self.assertEqual(committed_liked_msg_id, msg_to_like.id)
+
     def test_is_liked_by(self):
         """Does is_liked_by method return correct boolean?"""
 
