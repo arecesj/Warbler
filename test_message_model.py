@@ -92,7 +92,11 @@ class MessageModelTestCase(TestCase):
 
         # does like method return the message that was liked
         self.assertEqual(result.id, msg_to_like.id)
+
+        # does the user id for the like in the database match the user id of the user who liked the post
         self.assertEqual(committed_liker_id, liker.id)
+
+        # does the message is for the like in the databae match the id for the message that was liked
         self.assertEqual(committed_liked_msg_id, msg_to_like.id)
 
     def test_unlike(self):
@@ -124,7 +128,7 @@ class MessageModelTestCase(TestCase):
 
         db_likes = Like.query.first()
 
-        # does like method return the message that was liked
+        # after unliking, Like db should be empty
         self.assertEqual(unliked_msg.id, msg_to_like.id)
         self.assertEqual(db_likes, None)
 

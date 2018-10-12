@@ -209,7 +209,8 @@ def profile():
 
     form = EditUserForm(obj=g.user)
 
-    user = User.authenticate(username=g.user.username, password=form.data["password"])
+    user = User.authenticate(username=g.user.username,
+                             password=form.data["password"])
 
     if form.validate_on_submit():
         if g.user == user:
